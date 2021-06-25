@@ -7,6 +7,7 @@ import sublime
 
 
 class RandomTextCommand(sublime_plugin.TextCommand):
+
     def run(self, edit):
         settings = sublime.load_settings("RandomText.sublime-settings")
         default_set = settings.get('default_text_set', 'printable')
@@ -21,8 +22,8 @@ class RandomTextCommand(sublime_plugin.TextCommand):
         if length == 0:
             length = default_length
 
+        text = self.charset(name, length)
         for r in self.view.sel():
-            text = self.charset(name, length)
             self.view.replace(edit, r, text)
 
     def charset(self, name, length):
@@ -34,6 +35,16 @@ class RandomTextCommand(sublime_plugin.TextCommand):
                     chars = chars.replace(char, '')
         elif (name == 'alphanumeric'):
             chars = string.ascii_letters + string.digits
+        elif (name == 'disambiguous'):
+            chars = string.ascii_letters + string.digits
+            for char in chars:
+                if char in 'l1IiO0':
+                    chars = chars.replace(char, '')
+        elif (name == 'disambiguous-upper'):
+            chars = string.ascii_letters + string.digits
+            for char in chars:
+                if char in 'l1IiO0':
+                    chars = chars.replace(char, '').upper()
         elif (name == 'letters'):
             chars = string.ascii_letters
         elif (name == 'digits'):
@@ -43,11 +54,13 @@ class RandomTextCommand(sublime_plugin.TextCommand):
         else:
             chars = name
         # Generate and concatenate random characters from the charset
-        charset = ''.join(random.SystemRandom().choice(chars) for i in range(length))
+        charset = ''.join(random.SystemRandom().choice(chars)
+                          for i in range(length))
         return charset
 
 
 class SetRandomTextCharsetCommand(sublime_plugin.WindowCommand):
+
     def run(self):
         self.window.show_input_panel("Charset:", "", self.on_done, None, None)
         pass
@@ -58,8 +71,10 @@ class SetRandomTextCharsetCommand(sublime_plugin.WindowCommand):
 
 
 class SetRandomTextLengthCommand(sublime_plugin.WindowCommand):
+
     def run(self):
-        self.window.show_input_panel("Text Length:", "", self.on_done, None, None)
+        self.window.show_input_panel(
+            "Text Length:", "", self.on_done, None, None)
         pass
 
     def on_done(self, text):
